@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="nl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Base64 ⇄ afbeelding</title>
+<style>
+:root{color-scheme:light dark;--l:#8885;--a:#1d6fe0}
+body{font:16px/1.5 system-ui,sans-serif;max-width:1100px;margin:auto;padding:16px}
+h1{font-size:1.4rem;margin:0 0 12px}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g[hidden]{display:none}
+@media(max-width:800px){.g{grid-template-columns:1fr}}
+section{border:1px solid var(--l);border-radius:8px;padding:12px;min-width:0}
+textarea{width:100%;height:320px;font:13px ui-monospace,monospace;word-break:break-all;box-sizing:border-box}
+button,select{font:inherit;font-size:.9rem;padding:6px 11px;border:1px solid var(--l);border-radius:6px;background:Canvas;color:CanvasText;cursor:pointer}
+button:disabled{opacity:.4}
+.p,[aria-selected=true]{background:var(--a);color:#fff;border-color:var(--a)}
+.b{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.s{min-height:320px;display:flex;align-items:center;justify-content:center;border:1px solid var(--l);border-radius:6px;overflow:auto;text-align:center;opacity:.95;background:repeating-conic-gradient(#8882 0 25%,#0000 0 50%) 0 0/20px 20px}
+.s img{max-width:100%}
+.o{outline:2px dashed var(--a)}
+.e{color:#d33}
+dl{display:grid;grid-template-columns:auto 1fr;gap:0 12px;font-size:.9rem}dd{margin:0;word-break:break-word}
+[type=file]{display:none}
+</style>
+<h1>Base64 ⇄ afbeelding</h1>
+<div class="b"><button id=tv aria-selected=true>Base64 → afbeelding</button><button id=tc>Afbeelding → base64</button></div>
+
+<div class=g id=pv>
+<section>
+<textarea id=vi spellcheck=false placeholder="data:image/png;base64,...."></textarea>
+<div class=b><button id=vp>Plakken</button><button id=vu>Bestand uploaden</button><button id=vx>Wissen</button><input type=file id=vf accept=".txt,.b64,.base64,text/*,image/*"></div>
+<small>Of sleep een base64-tekstbestand of afbeelding hierheen.</small>
+</section>
+<section>
+<div class=s id=vs></div><dl id=vd></dl>
+<div class=b><button class=p id=vl disabled>Downloaden</button><button id=vc disabled>Data-URL kopiëren</button></div>
+</section>
+</div>
+
+<div class=g id=pc hidden>
+<section>
+<div class=s id=cd tabindex=0 style="cursor:pointer"></div><dl id=ci></dl>
+<div class=b><button class=p id=cp>Afbeelding kiezen</button><button id=cx disabled>Wissen</button><input type=file id=cf accept="image/*"></div>
+<p class=e id=ce></p>
+</section>
+<section>
+<textarea id=co readonly spellcheck=false placeholder="data:image/png;base64,...."></textarea>
+<div class=b>
+<select id=cm><option value=u>Data-URI<option value=r>Alleen base64<option value=i>HTML &lt;img&gt;<option value=c>CSS background</select>
+<button class=p id=cc disabled>Kopiëren</button><button id=cs disabled>Opslaan als .txt</button><button id=cv disabled>Openen in viewer</button>
+</div>
+</section>
+</div>
+
+<script>
+const $=i=>document.getElementById(i),kB=n=>n<1024?n+' B':n<1048576?(n/1024).toFixed(1)+' kB':(n/1048576).toFixed(2)+' MB',
+rd=(f,t,cb)=>{const r=new FileReader;r.onload=()=>cb(r.result);r[t?'readAsText':'readAsDataURL'](f)},
+rows=(d,a)=>d.replaceChildren(...a.flat().map((t,i)=>Object.assign(document.createElement(i%2?'dd':'dt'),{textContent:t}))),
+copy=(t,b)=>navigator.clipboard.writeText(t).then(()=>{const o=b.textContent;b.textContent='Gekopieerd';setTimeout(()=>b.textContent=o,1500)}),
+dl=(h,n)=>{const a=Object.assign(document.createElement('a'),{href:h,download:n});a.click()},
+off=(...b)=>b.forEach(x=>x.disabled=1),on=(...b)=>b.forEach(x=>x.disabled=0);
+let mode='v',vu='',cu='',cn='',t;
+
+const tab=m=>{mode=m;$('pv').hidden=m!='v';$('pc').hidden=m!='c';$('tv').ariaSelected=m=='v';$('tc').ariaSelected=m=='c'};
+$('tv').onclick=()=>tab('v');$('tc').onclick=()=>tab('c');
+
+// Base64 -> afbeelding
+const types=[['iVBOR','png'],['/9j/','jpeg'],['R0lGOD','gif'],['UklGR','webp'],['PHN2Zy','svg+xml'],['PD94bW','svg+xml'],['Qk','bmp']],
+vmsg=(c,m)=>{const d=$('vs');d.className='s';d.replaceChildren(Object.assign(document.createElement('span'),{className:c,textContent:m}))};
+function vr(){
+  const s=$('vi').value.replace(/\s+/g,''),u=/^data:/i.test(s)?s:s&&'data:image/'+(types.find(x=>s.startsWith(x[0]))||[0,'png'])[1]+';base64,'+s,im=new Image;
+  vu='';off($('vl'),$('vc'));$('vd').replaceChildren();
+  if(!u)return vmsg('','Plak een base64-string of upload een bestand.');
+  im.onload=()=>{vu=u;on($('vl'),$('vc'));
+    const b=u.slice(u.indexOf(',')+1);
+    rows($('vd'),[['Type',u.slice(5,u.indexOf(';'))],['Afmetingen',im.naturalWidth+' × '+im.naturalHeight+' px'],['Grootte',kB((b.length*3/4|0)-b.match(/=*$/)[0].length)]]);
+    $('vs').replaceChildren(im)};
+  im.onerror=()=>vmsg('e','Geen geldige afbeelding. Is de base64-tekst compleet?');
+  im.src=u;
+}
+const vload=f=>f&&rd(f,!f.type.startsWith('image/'),r=>{$('vi').value=String(r).replace(/^\uFEFF/,'');vr()}),
+vimg=e=>{const i=[...e.clipboardData.items].find(x=>x.type.startsWith('image/'));if(i){e.preventDefault();vload(i.getAsFile())}};
+$('vi').oninput=()=>{clearTimeout(t);t=setTimeout(vr,150)};
+$('vi').onpaste=vimg;
+$('vx').onclick=()=>{$('vi').value='';vr()};
+$('vp').onclick=()=>navigator.clipboard.readText().then(x=>{$('vi').value=x;vr()}).catch(()=>$('vi').focus());
+$('vu').onclick=()=>$('vf').click();
+$('vf').onchange=e=>{vload(e.target.files[0]);e.target.value=''};
+$('vc').onclick=()=>copy(vu,$('vc'));
+$('vl').onclick=()=>dl(vu,'afbeelding.'+vu.slice(11,vu.indexOf(';')).replace('jpeg','jpg').replace('svg+xml','svg'));
+
+// Afbeelding -> base64
+const hint=()=>{$('cd').className='s';$('cd').textContent='Sleep, klik of plak (Ctrl+V) een afbeelding'},
+out=()=>{const r=cu.slice(cu.indexOf(',')+1);$('co').value=cu&&{u:cu,r,i:`<img src="${cu}" alt="">`,c:`background-image:url("${cu}");`}[$('cm').value]},
+creset=()=>{cu='';$('co').value='';$('ci').replaceChildren();off($('cc'),$('cs'),$('cv'),$('cx'));hint()};
+function cload(f){
+  $('ce').textContent='';if(!f)return;
+  if(!f.type.startsWith('image/'))return $('ce').textContent='Dat is geen afbeelding.';
+  rd(f,0,u=>{const im=new Image;
+    im.onload=()=>{cu=u;cn=(f.name||'afbeelding').replace(/\.[^.]+$/,'');$('cd').replaceChildren(im);
+      rows($('ci'),[['Bestand',f.name||'geplakt'],['Type',f.type],['Afmetingen',im.naturalWidth+' × '+im.naturalHeight+' px'],['Origineel',kB(f.size)],['Base64',kB(u.length)]]);
+      on($('cc'),$('cs'),$('cv'),$('cx'));out()};
+    im.onerror=()=>{creset();$('ce').textContent='Afbeelding is beschadigd.'};
+    im.src=u})
+}
+$('cp').onclick=$('cd').onclick=()=>$('cf').click();
+$('cf').onchange=e=>{cload(e.target.files[0]);e.target.value=''};
+$('cx').onclick=()=>{$('ce').textContent='';creset()};
+$('cm').onchange=out;
+$('cc').onclick=()=>copy($('co').value,$('cc'));
+$('cs').onclick=()=>{const u=URL.createObjectURL(new Blob([$('co').value]));dl(u,cn+'-base64.txt');setTimeout(()=>URL.revokeObjectURL(u),1e3)};
+$('cv').onclick=()=>{tab('v');$('vi').value=cu;vr()};
+
+// Slepen en plakken
+['dragenter','dragover'].forEach(e=>document.addEventListener(e,x=>{x.preventDefault();$(mode=='v'?'vi':'cd').classList.add('o')}));
+['dragleave','drop'].forEach(e=>document.addEventListener(e,x=>{x.preventDefault();$('vi').classList.remove('o');$('cd').classList.remove('o')}));
+document.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];mode=='v'?vload(f):cload(f)});
+document.addEventListener('paste',e=>{if(mode=='c'){const i=[...e.clipboardData.items].find(x=>x.type.startsWith('image/'));if(i){e.preventDefault();cload(i.getAsFile())}}});
+
+vr();creset();
+</script>
