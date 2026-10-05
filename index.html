@@ -63,7 +63,6 @@ let mode='v',vu='',cu='',cn='',t;
 const tab=m=>{mode=m;$('pv').hidden=m!='v';$('pc').hidden=m!='c';$('tv').ariaSelected=m=='v';$('tc').ariaSelected=m=='c'};
 $('tv').onclick=()=>tab('v');$('tc').onclick=()=>tab('c');
 
-// Base64 -> afbeelding
 const types=[['iVBOR','png'],['/9j/','jpeg'],['R0lGOD','gif'],['UklGR','webp'],['PHN2Zy','svg+xml'],['PD94bW','svg+xml'],['Qk','bmp']],
 vmsg=(c,m)=>{const d=$('vs');d.className='s';d.replaceChildren(Object.assign(document.createElement('span'),{className:c,textContent:m}))};
 function vr(){
@@ -88,7 +87,6 @@ $('vf').onchange=e=>{vload(e.target.files[0]);e.target.value=''};
 $('vc').onclick=()=>copy(vu,$('vc'));
 $('vl').onclick=()=>dl(vu,'afbeelding.'+vu.slice(11,vu.indexOf(';')).replace('jpeg','jpg').replace('svg+xml','svg'));
 
-// Afbeelding -> base64
 const hint=()=>{$('cd').className='s';$('cd').textContent='Sleep, klik of plak (Ctrl+V) een afbeelding'},
 out=()=>{const r=cu.slice(cu.indexOf(',')+1);$('co').value=cu&&{u:cu,r,i:`<img src="${cu}" alt="">`,c:`background-image:url("${cu}");`}[$('cm').value]},
 creset=()=>{cu='';$('co').value='';$('ci').replaceChildren();off($('cc'),$('cs'),$('cv'),$('cx'));hint()};
@@ -110,7 +108,6 @@ $('cc').onclick=()=>copy($('co').value,$('cc'));
 $('cs').onclick=()=>{const u=URL.createObjectURL(new Blob([$('co').value]));dl(u,cn+'-base64.txt');setTimeout(()=>URL.revokeObjectURL(u),1e3)};
 $('cv').onclick=()=>{tab('v');$('vi').value=cu;vr()};
 
-// Slepen en plakken
 ['dragenter','dragover'].forEach(e=>document.addEventListener(e,x=>{x.preventDefault();$(mode=='v'?'vi':'cd').classList.add('o')}));
 ['dragleave','drop'].forEach(e=>document.addEventListener(e,x=>{x.preventDefault();$('vi').classList.remove('o');$('cd').classList.remove('o')}));
 document.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];mode=='v'?vload(f):cload(f)});
